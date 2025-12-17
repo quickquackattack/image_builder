@@ -1,0 +1,65 @@
+# GRUB2 Configuration for UEFI HTTP Boot - RHEL 9.4
+# Place this file at: /var/www/html/boot/grub2/grub.cfg
+#
+# This configuration provides boot menu entries for RHEL 9.4 installation
+# via HTTP boot with UEFI firmware
+
+set timeout=10
+set default=0
+
+# Set terminal output
+terminal_output console
+
+# Menu colors
+set menu_color_normal=white/black
+set menu_color_highlight=black/light-gray
+
+menuentry 'Install RHEL 9.4 via HTTP Boot with Kickstart (Automated)' {
+    echo 'Loading kernel...'
+    linuxefi (http,YOUR_SERVER_IP)/rhel94/images/pxeboot/vmlinuz inst.repo=http://YOUR_SERVER_IP/rhel94 inst.ks=http://YOUR_SERVER_IP/kickstart/rhel94-uefi.ks ip=dhcp inst.text
+    echo 'Loading initial ramdisk...'
+    initrdefi (http,YOUR_SERVER_IP)/rhel94/images/pxeboot/initrd.img
+}
+
+menuentry 'Install RHEL 9.4 via HTTP Boot (Manual Installation)' {
+    echo 'Loading kernel...'
+    linuxefi (http,YOUR_SERVER_IP)/rhel94/images/pxeboot/vmlinuz inst.repo=http://YOUR_SERVER_IP/rhel94 ip=dhcp inst.text
+    echo 'Loading initial ramdisk...'
+    initrdefi (http,YOUR_SERVER_IP)/rhel94/images/pxeboot/initrd.img
+}
+
+menuentry 'Install RHEL 9.4 via HTTP Boot (Graphical Installation)' {
+    echo 'Loading kernel...'
+    linuxefi (http,YOUR_SERVER_IP)/rhel94/images/pxeboot/vmlinuz inst.repo=http://YOUR_SERVER_IP/rhel94 inst.ks=http://YOUR_SERVER_IP/kickstart/rhel94-uefi.ks ip=dhcp
+    echo 'Loading initial ramdisk...'
+    initrdefi (http,YOUR_SERVER_IP)/rhel94/images/pxeboot/initrd.img
+}
+
+menuentry 'Install RHEL 9.4 with VNC' {
+    echo 'Loading kernel...'
+    linuxefi (http,YOUR_SERVER_IP)/rhel94/images/pxeboot/vmlinuz inst.repo=http://YOUR_SERVER_IP/rhel94 inst.ks=http://YOUR_SERVER_IP/kickstart/rhel94-uefi.ks ip=dhcp inst.vnc inst.vncpassword=password
+    echo 'Loading initial ramdisk...'
+    initrdefi (http,YOUR_SERVER_IP)/rhel94/images/pxeboot/initrd.img
+}
+
+menuentry 'Rescue Mode - RHEL 9.4' {
+    echo 'Loading kernel in rescue mode...'
+    linuxefi (http,YOUR_SERVER_IP)/rhel94/images/pxeboot/vmlinuz inst.repo=http://YOUR_SERVER_IP/rhel94 rescue ip=dhcp
+    echo 'Loading initial ramdisk...'
+    initrdefi (http,YOUR_SERVER_IP)/rhel94/images/pxeboot/initrd.img
+}
+
+menuentry 'Boot from local disk' {
+    echo 'Booting from local disk...'
+    exit
+}
+
+menuentry 'Reboot' {
+    echo 'Rebooting system...'
+    reboot
+}
+
+menuentry 'Firmware Setup (UEFI)' {
+    echo 'Entering firmware setup...'
+    fwsetup
+}

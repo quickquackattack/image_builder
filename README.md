@@ -16,10 +16,20 @@ UEFI HTTP Boot allows network booting of systems using HTTP/HTTPS protocols inst
 
 This repository includes:
 
+### Core Components
+
 - **rhel94-uefi.ks** - Kickstart configuration file for automated RHEL 9.4 installation
 - **setup-httpboot-server.sh** - Automated setup script for HTTP boot server
 - **grub.cfg.example** - GRUB2 configuration for boot menu
 - **dhcpd.conf.example** - DHCP server configuration example
+
+### Remote Deployment Components
+
+- **dhcpd-remote-subnet.conf.example** - DHCP configuration for remote subnets with MAC reservations
+- **deploy-remote-server.sh** - Automated deployment script for remote servers
+- **IDRAC-DEPLOYMENT.md** - Complete guide for deploying via Dell iDRAC to remote subnets
+
+**See [IDRAC-DEPLOYMENT.md](IDRAC-DEPLOYMENT.md) for deploying to servers in different subnets using iDRAC management.**
 
 ## Prerequisites
 
@@ -120,6 +130,65 @@ Copy the output and replace the existing hash in the kickstart file.
 6. System will boot from network and display GRUB menu
 7. Select installation option
 8. Installation will proceed automatically with kickstart
+
+## Remote Subnet Deployment (iDRAC)
+
+For deploying to servers in different subnets using Dell iDRAC:
+
+### Quick Remote Deployment
+
+```bash
+# 1. Run the automated deployment script
+sudo ./deploy-remote-server.sh
+
+# The script will prompt you for:
+# - Server hostname
+# - MAC address (ETH0)
+# - Desired IP address
+# - Subnet information
+# - iDRAC IP and credentials
+
+# 2. Script automatically:
+# - Adds DHCP reservation
+# - Configures iDRAC for UEFI network boot
+# - Creates custom kickstart (optional)
+# - Powers on the server
+```
+
+### Manual Remote Deployment
+
+If you prefer manual configuration:
+
+1. **Configure DHCP for remote subnet:**
+   ```bash
+   # Use the remote subnet template
+   cp dhcpd-remote-subnet.conf.example /etc/dhcp/dhcpd.conf
+
+   # Add host reservation with your server's MAC address
+   # Edit subnet configuration for your network
+   vi /etc/dhcp/dhcpd.conf
+
+   systemctl restart dhcpd
+   ```
+
+2. **Configure iDRAC for network boot:**
+   ```bash
+   # Set UEFI boot mode and network boot priority
+   racadm -r IDRAC_IP -u root -p password set BIOS.BiosBootSettings.BootMode Uefi
+   racadm -r IDRAC_IP -u root -p password jobqueue create BIOS.Setup.1-1
+   racadm -r IDRAC_IP -u root -p password serveraction powercycle
+   ```
+
+3. **Monitor deployment:**
+   ```bash
+   # Watch DHCP requests
+   journalctl -u dhcpd -f
+
+   # Monitor HTTP access
+   tail -f /var/log/httpd/access_log
+   ```
+
+**For complete remote deployment documentation, see [IDRAC-DEPLOYMENT.md](IDRAC-DEPLOYMENT.md)**
 
 ## Directory Structure
 
